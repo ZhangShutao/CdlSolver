@@ -1,0 +1,5 @@
+default model: 1
+x:marathon; y:marathon;
+default model: 2
+x:relay; y:relay;
+Satisfiable
