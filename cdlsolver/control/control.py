@@ -1,3 +1,4 @@
+import logging
 from abc import ABC
 import clingo
 from cdlsolver.preprocessor.preprocessor import Preprocessor
@@ -5,14 +6,17 @@ from cdlsolver.preprocessor.preprocessor import Preprocessor
 from cdlsolver.solver.solver import Solver, DefaultModel
 
 
+def silent_logger(_code, _msg):
+    pass
+
+
 class Control(ABC):
 
     def __init__(self):
-        # self._program = ""
+        self._rules = []
         self._defaults = set()
-        self._additional_rules = []
-        self._candidate_ctl = clingo.Control(['0'])
-        self._test_ctl = clingo.Control(['0'])
+        self._candidate_ctl = clingo.Control(['0'], logger=silent_logger)
+        self._shows = []
 
     def add(self, program):
         """
@@ -22,7 +26,7 @@ class Control(ABC):
         :return: 0 if success
         """
         # self._program = self._program + program
-        preprocessor = Preprocessor(self._defaults, self._candidate_ctl, self._test_ctl)
+        preprocessor = Preprocessor(self._defaults, self._candidate_ctl, self._rules, self._shows)
         preprocessor.preprocess(program)
         return 0
 
@@ -49,7 +53,8 @@ class Control(ABC):
 
         :return: models, the list is empty if the program is unsatisfiable
         """
-        solver = Solver(self._candidate_ctl, self._test_ctl)
+        # logging.debug('solving asp program:' + '\n'.join(self._rules))
+        solver = Solver(self._candidate_ctl, self._defaults, self._rules, self._shows)
         # with  as models:
         models = solver.solve()
 

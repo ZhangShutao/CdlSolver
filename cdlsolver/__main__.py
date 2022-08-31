@@ -6,12 +6,13 @@ import argparse
 from time import perf_counter as timer
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 def main():
 
     logging.basicConfig(encoding='utf-8', level=logging.WARNING)
+    print('CDLSolver with show statements')
     print(f'CDLSolver version: {__version__}')
     argparser = argparse.ArgumentParser(prog='cdlsolver')
     argparser.add_argument('input_files', nargs='+', type=str, help='path to input files')

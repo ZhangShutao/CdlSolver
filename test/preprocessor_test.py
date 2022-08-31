@@ -59,7 +59,11 @@ class TestPreprocessor(unittest.TestCase):
         defaults = set()
         candidate_ctl = clingo.Control(['0'])
         test_ctl = clingo.Control(['0'])
-        preprocessor = Preprocessor(defaults, candidate_ctl, test_ctl)
+        rules = []
+        preprocessor = Preprocessor(defaults, candidate_ctl, test_ctl, rules)
         program = 'fly(X) :- &c{-fly(X)}. fly(X) :- &c{not fly(X)}. fly(X) :- &c{fly(X)}. p(q, X) :- &c{p(q, X)}.' \
                   'a :- &c{b}. a :- &c{not c}.'
         preprocessor.preprocess(program)
+
+        for r in rules:
+            print(r)

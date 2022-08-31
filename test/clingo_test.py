@@ -7,20 +7,22 @@ class VisitTransformer(clingo.ast.Transformer):
 
     def visit_Literal(self, literal):
         print("visiting literal " + str(literal))
-        # print(literal.atom)
+        print(literal.atom.ast_type)
         # print(literal.atom.keys)
+        for argument in literal.atom.symbol.arguments:
+            print(argument.operator_type)
         return literal
 
-    def visit_Rule(self, rule):
-        print("visiting rule " + str(rule))
-        print(rule.head.ast_type)
-        if rule.head.ast_type == clingo.ast.ASTType.Disjunction:
-            print(rule.head.elements[0].literal.atom.symbol.ast_type)
-        print(rule.head.keys)
-        return rule
+    # def visit_Rule(self, rule):
+    #     print("visiting rule " + str(rule))
+    #     print(rule.head.ast_type)
+    #     if rule.head.ast_type == clingo.ast.ASTType.Disjunction:
+    #         print(rule.head.elements[0].literal.atom.symbol.ast_type)
+    #     # print(rule.head.keys)
+    #     return rule
 
-    def visit_Program(self, program):
-        print(program.keys)
+    # def visit_Program(self, program):
+        # print(program.keys)
 
 
 class TestClingo(unittest.TestCase):
@@ -28,7 +30,7 @@ class TestClingo(unittest.TestCase):
     def test_ground(self):
         ctl = clingo.Control()
         with clingo.ast.ProgramBuilder(ctl) as bld:
-            clingo.ast.parse_string('fly(X):-bird(X),not -fly(X). bird(tweety).', bld.add)
+            clingo.ast.parse_string('fly(X):-bird(X),not -fly(X). bird(tweety). #show fly/1.', bld.add)
         ctl.ground([('base', [])])
         for atom in ctl.symbolic_atoms:
             print(atom.symbol)
@@ -47,8 +49,9 @@ class TestClingo(unittest.TestCase):
             guesses = clingo.ast.Disjunction(loc, [p_guess, n_guess])
 
             bird = clingo.ast.SymbolicAtom(clingo.ast.Function(loc, 'bird', [x], False))
+            nfly = clingo.ast.SymbolicAtom(clingo.ast.Function(loc, '-fly', [x], False))
             # body_lit = clingo.ast.Literal(loc, clingo.ast.Sign.NoSign, clingo.ast.SymbolicAtom(bird))
-            body = [clingo.ast.Literal(loc, clingo.ast.Sign.NoSign, bird)]
+            body = [clingo.ast.Literal(loc, clingo.ast.Sign.NoSign, bird), clingo.ast.Literal(loc, clingo.ast.Sign.Negation, nfly)]
             rule = clingo.ast.Rule(loc, guesses,  body)
             print(rule)
             bld.add(rule)
@@ -60,7 +63,14 @@ class TestClingo(unittest.TestCase):
             # print(fact)
             bld.add(fact)
 
+            fly = clingo.ast.SymbolicAtom(clingo.ast.Function(loc, '-fly', [x], False))
+            false_term = clingo.ast.SymbolicTerm(loc, clingo.symbol.Function('false', [], True))
+            external = clingo.ast.External(loc, fly, body, false_term)
+            print(external)
+            bld.add(external)
+
         ctl.ground([('base', [])])
+        ctl.assign_external(clingo.symbol.Function('-fly', [clingo.symbol.Function('tweety', [])]), True)
         for model in ctl.solve(yield_=True):
             print(model)
 
@@ -68,7 +78,7 @@ class TestClingo(unittest.TestCase):
         vtm = VisitTransformer()
         ctl = clingo.Control(arguments=[f"--models=0"])
         with clingo.ast.ProgramBuilder(ctl) as bld:
-            clingo.ast.parse_string('guess(X) | not guess(X) :- bird(X). bird(tweety).', vtm)
+            clingo.ast.parse_string('time(T+1):- time(T).', vtm)
             clingo.ast.parse_string('guess(X) | not guess(X) :- bird(X). bird(tweety).', bld.add)
         ctl.ground([('base', [])])
 
@@ -80,11 +90,6 @@ class TestClingo(unittest.TestCase):
 
     def test_constraint(self):
         ctl = clingo.Control(['0'])
-        vtm = VisitTransformer()
-        with clingo.ast.ProgramBuilder(ctl) as bld:
-            clingo.ast.parse_string(':-a(X), b(X).', vtm)
-
-        ctl.cleanup()
 
         pos = clingo.ast.Position('<string>', 1, 1)
         loc = clingo.ast.Location(pos, pos)
@@ -107,5 +112,44 @@ class TestClingo(unittest.TestCase):
 
         ctl.add('base', [], 'bird(tweety).')
         ctl.ground([('base', [])])
+        print(ctl.solve(on_model=print))
+
+    def test_assumption(self):
+        ctl = clingo.Control(['0'])
+        with open('E:/Projects/cdlsolver/test/test_programs/temp.lp', 'r') as program_file:
+            ctl.add('base', [], program_file.read())
+        ctl.ground([('base', [])])
+
+        assumptions = []
+        assumptions.append((clingo.symbol.Function('apply', [clingo.symbol.Function('r1'), clingo.symbol.Number(1)]), True))
+        assumptions.append((clingo.symbol.Function('napply', [clingo.symbol.Function('p1')]), True))
+        # assumptions.append((clingo.symbol.Function('p', [clingo.symbol.Number(1)]), True))
+        # assumptions.append((clingo.symbol.Function('p', [clingo.symbol.Number(2)]), True))
+        # assumptions.append((clingo.symbol.Function('a', [clingo.symbol.Number(1)]), True))
+        # assumptions.append((clingo.symbol.Function('guess_not_apply', [clingo.symbol.Function('r1'), clingo.symbol.Number(2)]), True))
+        # assumptions.append((clingo.symbol.Function('guess_napply', [clingo.symbol.Function('p1')]), True))
+        # assumptions.append((clingo.symbol.Function('ok'), True))
+
+        with ctl.solve(yield_=True, assumptions=assumptions) as handle:
+            print(handle.get())
+            cnt = 0
+            for m in handle:
+                print(m)
+                cnt += 1
+            print(cnt)
+
+    def test_external(self):
+        ctl = clingo.Control(['0'])
+        ctl.add('base', [], ':- a(X). p(1).')
+        ctl.add('base', [], '#external a(X) : p(X).')
+        ctl.ground([('base', [])])
+
+        ctl.assign_external(clingo.symbol.Function('a', [clingo.symbol.Number(1)]), False)
+        print(ctl.solve(on_model=print))
+
+        ctl.assign_external(clingo.symbol.Function('a', [clingo.symbol.Number(1)]), True)
+        print(ctl.solve(on_model=print))
+
+        ctl.release_external(clingo.symbol.Function('a', [clingo.symbol.Number(1)]))
         print(ctl.solve(on_model=print))
 
