@@ -6,12 +6,12 @@ import argparse
 from time import perf_counter as timer
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.3'
 
 
 def main():
 
-    logging.basicConfig(encoding='utf-8', level=logging.WARNING)
+    logging.basicConfig(encoding='utf-8', level=logging.ERROR)
     print('CDLSolver with show statements')
     print(f'CDLSolver version: {__version__}')
     argparser = argparse.ArgumentParser(prog='cdlsolver')
@@ -21,19 +21,24 @@ def main():
     start = timer()
     control = Control()
 
-    for file_path in args.input_files:
-        control.load(file_path)
+    try:
+        for file_path in args.input_files:
+            control.load(file_path)
+    except SyntaxError as e:
+        print(e.msg)
+        return
 
     model_cnt = 0
     print('Solving...')
-    for model in control.solve():
-        model_cnt += 1
-        print(f'default model: {model_cnt}\n{model}')
+    with control.solve() as models:
+        for model in models:
+            model_cnt += 1
+            print(f'default model: {model_cnt}\n{model}')
 
-    if model_cnt == 0:
-        print('Unsatisfiable')
-    else:
-        print('Satisfiable')
+        if model_cnt == 0:
+            print('Unsatisfiable')
+        else:
+            print('Satisfiable')
 
     end = timer()
     print(f'Elapsed time: {(end - start):.6f}s')

@@ -25,6 +25,7 @@ class VisitTransformer(clingo.ast.Transformer):
         # print(program.keys)
 
 
+@unittest.skip('skip is upper.')
 class TestClingo(unittest.TestCase):
 
     def test_ground(self):
@@ -153,3 +154,24 @@ class TestClingo(unittest.TestCase):
         ctl.release_external(clingo.symbol.Function('a', [clingo.symbol.Number(1)]))
         print(ctl.solve(on_model=print))
 
+    def test_theory_atom(self):
+        ctl = clingo.Control(['0'])
+        ctl.add('base', [], 'a :- not &c{-b}.')
+        ctl.ground(([('base', [])]))
+
+        print(ctl.solve(on_model=print))
+
+    def _parse_log_callback(self, message_code, msg):
+        self._error = True
+        self._error_msg = msg
+
+    def test_parse_grammar_error(self):
+        error = False
+        error_msg = ""
+
+        program = "a :- b"
+        try:
+            clingo.ast.parse_string(program, print, logger=lambda msg_code, msg: self._parse_log_callback(msg_code, msg))
+        except RuntimeError as e:
+            print(str(self._error_msg))
+        print("after parsing")

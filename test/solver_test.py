@@ -16,7 +16,7 @@ class TestSolver(unittest.TestCase):
         test_ctl = clingo.Control(['0'])
         defaults = set()
         preprocessor = Preprocessor(defaults, ctl, test_ctl)
-        solver = Solver(ctl, test_ctl)
+        solver = Solver(ctl, test_ctl, [], [])
 
         preprocessor.preprocess(program)
         for model in solver.solve():
@@ -28,7 +28,7 @@ class TestSolver(unittest.TestCase):
         test_ctl = clingo.Control(['0'])
         defaults = set()
         preprocessor = Preprocessor(defaults, ctl, test_ctl)
-        solver = Solver(ctl, test_ctl)
+        solver = Solver(ctl, test_ctl, [], [])
 
         preprocessor.preprocess(program)
         for model in solver.solve():

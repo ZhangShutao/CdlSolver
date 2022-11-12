@@ -1,2 +1,5 @@
-p :- &c{s}.
-q :- &c{-s}.
+% Program Reading
+% WA 1: Unsat
+% WA 2: <{}, {}>
+
+a :- &c{a}.

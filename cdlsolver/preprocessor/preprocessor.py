@@ -18,6 +18,12 @@ arith_ops = {
 }
 
 
+class GrammarException(RuntimeError):
+
+    def __init__(self, arg):
+        self.args = arg
+
+
 class DefaultTransformer(Transformer):
 
     def __init__(self, defaults, additional_rules, shows):
@@ -30,8 +36,7 @@ class DefaultTransformer(Transformer):
 
         # if str(literal) == 'bird(X)':
         #     print(literal.atom.symbol.operator_type == clingo.ast.UnaryOperator.Minus)
-
-        if self._is_default_literal(literal):
+        if self._is_default_literal(literal) and (not self._is_default_of_naf(literal)):
             guess_literal = self._get_guess_literal(literal)
             self._defaults.add(self._get_positive_literal(guess_literal))
 
@@ -46,7 +51,14 @@ class DefaultTransformer(Transformer):
 
             logging.debug("output literal:" + str(guess_literal))
             return guess_literal
+        elif self._is_default_of_naf(literal):
+            # elif self._is_naf_literal(literal) or self._is_default_of_naf(literal):
+            pos = "{0}:{1}-{2}".format(str(literal.location.begin.line), str(literal.location.begin.column),
+                                       str(literal.location.end.column))
+            raise SyntaxError(pos + ": error: Negation as failure in \"" +
+                              str(literal) + "\" is illegal in CDLP.")
         else:
+
             logging.debug("output literal:" + str(literal))
             return literal
 
@@ -58,6 +70,9 @@ class DefaultTransformer(Transformer):
                 if self._is_default_literal(literal):
                     choose_rule = self._get_choice_rule(rule, literal)
                     self._additional_rules.append(choose_rule)
+
+                    not_guess_constraint = self._get_not_guess_constraint(rule, literal)
+                    self._additional_rules.append(not_guess_constraint)
         ret = rule.update(**self.visit_children(rule))
         logging.debug("output rule:" + str(ret))
         return ret
@@ -73,16 +88,21 @@ class DefaultTransformer(Transformer):
                 return True
         return False
 
-    def _is_default_literal(self, ast):
+    @staticmethod
+    def _is_naf_literal(literal):
+        return literal.sign == clingo.ast.Sign.Negation or literal.sign == clingo.ast.Sign.DoubleNegation
+
+    @staticmethod
+    def _is_default_literal(ast):
         """
         return true if this ast node is a default literal
 
         :param ast:
         :return:
         """
-        return ast.ast_type == clingo.ast.ASTType.Literal \
-               and ast.atom.ast_type == clingo.ast.ASTType.TheoryAtom \
-               and 'c' == ast.atom.term.name
+        return ast.ast_type == clingo.ast.ASTType.Literal and \
+            ast.atom.ast_type == clingo.ast.ASTType.TheoryAtom and \
+            'c' == ast.atom.term.name
 
     def _get_positive_body(self, rule):
         pos_body = []
@@ -90,9 +110,17 @@ class DefaultTransformer(Transformer):
             if literal.ast_type == clingo.ast.ASTType.Literal and not self._is_default_literal(literal):
                 if literal.sign != clingo.ast.Sign.Negation and literal.sign != clingo.ast.Sign.DoubleNegation:
                     # print(literal.atom.symbol.ast_type)
-                    if literal.atom.symbol.ast_type is not clingo.ast.ASTType.Function or len(literal.atom.symbol.arguments):
+                    if literal.atom.symbol.ast_type is not clingo.ast.ASTType.Function or len(
+                            literal.atom.symbol.arguments):
                         pos_body.append(literal)
         return pos_body
+
+    def _get_not_guess_constraint(self, rule, literal):
+        guess_name, guess_args = self._get_default_name_and_args(literal)
+        guess_atom = clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, guess_name, guess_args, False))
+        not_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.Negation, guess_atom)
+        pos_literal = self._get_objective_literal_from_default(literal)
+        return self._get_constraint([not_guess, pos_literal] + self._get_positive_body(rule))
 
     def _get_choice_rule(self, rule, literal):
         """
@@ -144,9 +172,11 @@ class DefaultTransformer(Transformer):
             if 'guess_not_' in guess_name:
                 guess_name = guess_name.replace('guess_not_', 'guess_')
 
-            guess_atom = clingo.ast.SymbolicAtom(
+            guess_atom = clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, guess_name, guess_args, False))
+
+            neg_guess_atom = clingo.ast.SymbolicAtom(
                 clingo.ast.Function(literal.location, guess_name.replace('guess_', 'guess_not_'), guess_args, False))
-            neg_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign, guess_atom)
+            neg_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign, neg_guess_atom)
 
             pos_literal = self._get_objective_literal_from_default(literal)
             # print(neg_guess_name)
@@ -154,19 +184,21 @@ class DefaultTransformer(Transformer):
             return [self._get_constraint([neg_guess, pos_literal])]
         return []
 
+    def _get_negation_constraint(self, loc, pos_name, neg_name, args):
+        pos_guess = clingo.ast.Literal(loc, clingo.ast.Sign.NoSign,
+                                       clingo.ast.SymbolicAtom(clingo.ast.Function(loc, pos_name,
+                                                                                   args, False)))
+        neg_guess = clingo.ast.Literal(loc, clingo.ast.Sign.NoSign,
+                                       clingo.ast.SymbolicAtom(clingo.ast.Function(loc, neg_name,
+                                                                                   args, False)))
+        return [self._get_constraint([pos_guess, neg_guess])]
+
     def _get_weak_negation_constraint(self, literal):
         if self._is_default_literal(literal):
             guess_name, guess_args = self._get_default_name_and_args(literal)
             pos_guess_name = guess_name.replace('guess_not_', 'guess_')
             neg_guess_name = pos_guess_name.replace('guess_', 'guess_not_')
-
-            pos_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign,
-                                           clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, pos_guess_name,
-                                                                                       guess_args, False)))
-            neg_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign,
-                                           clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, neg_guess_name,
-                                                                                       guess_args, False)))
-            return [self._get_constraint([pos_guess, neg_guess])]
+            return self._get_negation_constraint(literal.location, pos_guess_name, neg_guess_name, guess_args)
         else:
             return []
 
@@ -175,19 +207,12 @@ class DefaultTransformer(Transformer):
             guess_name, guess_args = self._get_default_name_and_args(literal)
             pos_guess_name = guess_name.replace('guess_not_', 'guess_').replace('guess_sn_', 'guess_')
             neg_guess_name = pos_guess_name.replace('guess_', 'guess_sn_')
-
-            pos_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign,
-                                           clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, pos_guess_name,
-                                                                                       guess_args, False)))
-            neg_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign,
-                                           clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, neg_guess_name,
-                                                                                       guess_args, False)))
-            return [self._get_constraint([pos_guess, neg_guess])]
-
+            return self._get_negation_constraint(literal.location, pos_guess_name, neg_guess_name, guess_args)
         else:
             return []
 
-    def _get_constraint(self, body):
+    @staticmethod
+    def _get_constraint(body):
         pos = clingo.ast.Position('<string>', 1, 1)
         loc = clingo.ast.Location(pos, pos)
 
@@ -230,7 +255,7 @@ class DefaultTransformer(Transformer):
                                                [self._get_theory_function_argument(symbol_argument)
                                                 for symbol_argument in element_term.arguments], False)
             else:
-                raise RuntimeError('wrong type of default literal: ' + str(literal))
+                raise SyntaxError('wrong type of default literal: ' + str(literal))
 
             if '-' in theory_element.operators:
                 atom = clingo.ast.SymbolicAtom(
@@ -238,9 +263,19 @@ class DefaultTransformer(Transformer):
             else:
                 atom = clingo.ast.SymbolicAtom(function)
         else:
-            raise RuntimeError('wrong type of default literal: ' + str(literal))
+            raise SyntaxError('wrong type of default literal: ' + str(literal))
 
         return clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign, atom)
+
+    def _is_default_of_naf(self, literal):
+        if self._is_default_literal(literal):
+            theory_term = literal.atom.elements[0].terms[0]
+            if theory_term.ast_type == clingo.ast.ASTType.TheoryUnparsedTerm:
+                theory_element = theory_term.elements[0]
+                for operator in theory_element.operators:
+                    if operator == '~' or operator == 'not':
+                        return True
+        return False
 
     def _get_default_name_and_args(self, literal):
         """
@@ -273,7 +308,7 @@ class DefaultTransformer(Transformer):
                 return literal_name + str(element_term.name), [self._get_theory_function_argument(symbol_argument)
                                                                for symbol_argument in element_term.arguments]
 
-        raise RuntimeError('unknown type of default literal ' + str(literal))
+        raise SyntaxError('unknown type of default literal ' + str(literal))
 
     def _get_theory_function_argument(self, argument):
         # print(str(argument) + str(argument.ast_type))
@@ -282,24 +317,27 @@ class DefaultTransformer(Transformer):
                                        [self._get_theory_function_argument(arg)
                                         for arg in argument.arguments], False)
         elif argument.ast_type == clingo.ast.ASTType.TheoryUnparsedTerm:
-            print(argument)
-            print(argument.elements[1].operators[0])
+            # print(argument)
+            # print(argument.elements[1].operators[0])
             if argument.elements[1] and argument.elements[1].operators[0] in arith_ops.keys():
                 operator = arith_ops[argument.elements[1].operators[0]]
-                print(operator), print(argument.elements[0].term), print(argument.elements[1].term)
+                # print(operator), print(argument.elements[0].term), print(argument.elements[1].term)
                 return clingo.ast.BinaryOperation(argument.location, operator,
                                                   self._get_theory_function_argument(argument.elements[0].term),
                                                   self._get_theory_function_argument(argument.elements[1].term))
         else:
             return argument
 
-    def _get_positive_literal(self, literal):
+    @staticmethod
+    def _get_positive_literal(literal):
         return clingo.ast.Literal(literal.location, clingo.ast.Sign.NoSign, literal.atom)
 
 
 class Preprocessor(ABC):
 
-    def __init__(self, defaults, candidate_ctl, rules, shows):
+    def __init__(self, defaults, candidate_ctl, rules, shows=None):
+        if shows is None:
+            shows = []
         self._defaults = defaults
         self._candidate_ctl = candidate_ctl
         self._additional_rules = []
@@ -310,22 +348,27 @@ class Preprocessor(ABC):
     def preprocess(self, program):
         default_transformer = DefaultTransformer(self._defaults, self._additional_rules, self._shows)
         # guess_ctl = clingo.Control()
-        clingo.ast.parse_string(program, lambda ast: self._add_to_controls(default_transformer(ast)))
+        try:
+            # print(program)
+            clingo.ast.parse_string(program, lambda ast: self._add_to_controls(default_transformer(ast)))
+        except SyntaxError as e:
+            raise
+
         for rule in self._additional_rules:
             self._add_to_controls(rule)
-
+        return 0
         # with clingo.ast.ProgramBuilder(self._candidate_ctl) as builder:
         #     clingo.ast.parse_string(program, lambda ast: builder.add(default_transformer(ast)))
         #     for rule in self._additional_rules:
         #         builder.add(rule)
-            # clingo.ast.parse_string(program, default_transformer)
+        # clingo.ast.parse_string(program, default_transformer)
 
         # guess_ctl.ground([('ground', [])])
         # print(guess_ctl)
-        return 0
 
     def _add_to_controls(self, ast):
         if ast:
             self._rules.append(str(ast))
+            # print(str(ast))
             with ProgramBuilder(self._candidate_ctl) as builder:
                 builder.add(ast)

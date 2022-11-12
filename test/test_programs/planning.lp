@@ -31,7 +31,7 @@ goal :- time(T), goal(T).
 
 1{occurs(A, T) : action(A)}1 :- time(T), T < n, not goal(T).
 
-table_allowed(T) :- time(T), not &c{not table_allowed(T)}.
+table_allowed(T) :- time(T), not &c{-table_allowed(T)}.
 :- occurs(move(B,t), T), block(B), time(T), not table_allowed(T).
 
 %#show table_allowed/1.

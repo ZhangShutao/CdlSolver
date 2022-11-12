@@ -1,0 +1,5 @@
+default model: 1
+x:b,apply(r2); y:b,apply(r2);
+default model: 2
+x:apply(r1),a; y:apply(r1),a;
+Satisfiable
