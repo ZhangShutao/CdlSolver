@@ -349,7 +349,7 @@ class Preprocessor(ABC):
         default_transformer = DefaultTransformer(self._defaults, self._additional_rules, self._shows)
         # guess_ctl = clingo.Control()
         try:
-            print(program)
+            # print(program)
             clingo.ast.parse_string(program, lambda ast: self._add_to_controls(default_transformer(ast)))
         except SyntaxError as e:
             raise
