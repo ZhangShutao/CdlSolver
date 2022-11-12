@@ -1,0 +1,1 @@
+E:/Projects/cdlsolver/test/test_programs/naf_default.lp:1:6-15: error: Negation as failure in "&c { (not b) }" is illegal in CDLP.

@@ -1,5 +1,5 @@
 default model: 1
-x:p; y:p,-s;
+x:p; y:p,s;
 default model: 2
-x:q; y:s,q;
+x:q; y:-s,q;
 Satisfiable
