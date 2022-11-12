@@ -1,3 +1,3 @@
 default model: 1
-x:a; y:a;
+x:occur(1); y:occur(1);
 Satisfiable

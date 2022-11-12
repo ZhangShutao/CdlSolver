@@ -1,3 +1,5 @@
+% representing the preference relation between cr-rules, failed
+
 :- not a, not b.
 a :- apply(r1).
 b :- apply(r2).

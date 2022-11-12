@@ -1,3 +1,4 @@
+import logging
 from abc import ABC
 import clingo.ast
 import clingo.symbol
@@ -88,7 +89,10 @@ class Solver(ABC):
 
     def solve(self):
         # print('\n'.join(self._rules))
-        self._candidate_ctl.ground([('base', [])])
+        try:
+            self._candidate_ctl.ground([('base', [])])
+        except RuntimeError as e:
+            raise
         with self._candidate_ctl.solve(yield_=True) as handle:
             for model in handle:
                 # print(model)
@@ -99,7 +103,7 @@ class Solver(ABC):
         self._candidates = sorted(self._candidates, key=DefaultModel.count_guess, reverse=True)
 
         for i in range(len(self._candidates)):
-            # print("candidate:" + str(self._candidates[i]))
+            logging.debug("candidate:{0}".format(self._candidates[i]))
             if not self._candidate_covered(self._candidates[i]):
                 self._models.append(self._candidates[i].filter_shows(self._shows))
 

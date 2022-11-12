@@ -1,0 +1,3 @@
+default model: 1
+x:-fly(d),fly(b),fly(a),-fly(c); y:-fly(d),fly(a),fly(b),-fly(c);
+Satisfiable

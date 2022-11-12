@@ -3,6 +3,10 @@ action(1..3).
 safe :- occur(1).
 comfort :- occur(2).
 
-ideal :- safe, comfort.
+% question: how to represent "if and only if?"
+-ideal :- not safe.
+-ideal :- not comfort.
 
 :- not &c{ideal}, not safe.
+
+#show occur/1.

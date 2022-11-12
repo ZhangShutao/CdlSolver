@@ -1,0 +1,3 @@
+default model: 1
+x:occurs(move(d,c),3),occurs(move(b,a),2),occurs(move(a,t),1),goal(4),occurs(move(b,c),0); y:occurs(move(d,c),3),occurs(move(b,a),2),occurs(move(a,t),1),goal(4),occurs(move(b,c),0);
+Satisfiable
