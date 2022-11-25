@@ -1,4 +1,6 @@
 # import clingo.ast
+import sys
+
 from cdlsolver.control.control import Control
 # import heapq
 import logging
@@ -6,13 +8,13 @@ import argparse
 from time import perf_counter as timer
 
 
-__version__ = '0.1.3'
+__version__ = '0.1.5'
 
 
 def main():
 
     logging.basicConfig(encoding='utf-8', level=logging.ERROR)
-    print('CDLSolver with show statements')
+    # print('CDLSolver with show statements')
     print(f'CDLSolver version: {__version__}')
     argparser = argparse.ArgumentParser(prog='cdlsolver')
     argparser.add_argument('input_files', nargs='+', type=str, help='path to input files')
@@ -25,23 +27,25 @@ def main():
         for file_path in args.input_files:
             control.load(file_path)
     except SyntaxError as e:
-        print(e.msg)
+        sys.stderr.write(e.msg)
         return
 
     model_cnt = 0
-    print('Solving...')
-    with control.solve() as models:
-        for model in models:
+    sys.stdout.write('Solving...')
+    try:
+        for model in control.solve():
             model_cnt += 1
-            print(f'default model: {model_cnt}\n{model}')
+            sys.stdout.write(f'default model: {model_cnt}\n{model}')
 
         if model_cnt == 0:
-            print('Unsatisfiable')
+            sys.stdout.write('Unsatisfiable')
         else:
-            print('Satisfiable')
+            sys.stdout.write('Satisfiable')
+    except RuntimeError as e:
+        sys.stderr.write(str(e))
 
     end = timer()
-    print(f'Elapsed time: {(end - start):.6f}s')
+    sys.stdout.write(f'Elapsed time: {(end - start):.6f}s')
 
 
 if __name__ == '__main__':
@@ -49,8 +53,3 @@ if __name__ == '__main__':
     # log to both console and file
 
     main()
-
-
-
-
-
