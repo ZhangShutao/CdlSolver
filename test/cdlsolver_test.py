@@ -97,9 +97,9 @@ class ControlTest(unittest.TestCase):
 
     @staticmethod
     def _get_x_y(str):
-        parts = str.strip().replace(' ', '').split(';')
-        x = set(parts[0].replace('x:', '').split(','))
-        y = set(parts[1].replace('y:', '').split(','))
+        parts = str.strip().split(';')
+        x = set(parts[0].replace('x:', '').split(', '))
+        y = set(parts[1].replace('y:', '').split(', '))
         return x, y
 
     def _test_control(self, paths, out):

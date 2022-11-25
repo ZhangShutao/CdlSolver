@@ -74,7 +74,7 @@ class DefaultModel:
         return NotImplemented
 
     def __repr__(self):
-        return 'x:' + ','.join([str(m) for m in self._x]) + '; y:' + ','.join([str(m) for m in self._y]) + ';'
+        return 'x:' + ', '.join([str(m) for m in self._x]) + '; y:' + ', '.join([str(m) for m in self._y]) + ';'
 
 
 class Solver(ABC):

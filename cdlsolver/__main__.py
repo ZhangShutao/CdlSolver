@@ -31,21 +31,21 @@ def main():
         return
 
     model_cnt = 0
-    sys.stdout.write('Solving...')
+    sys.stdout.write('Solving...\n')
     try:
         for model in control.solve():
             model_cnt += 1
-            sys.stdout.write(f'default model: {model_cnt}\n{model}')
+            sys.stdout.write(f'default model: {model_cnt}\n{model}\n')
 
         if model_cnt == 0:
-            sys.stdout.write('Unsatisfiable')
+            sys.stdout.write('Unsatisfiable\n')
         else:
-            sys.stdout.write('Satisfiable')
+            sys.stdout.write('Satisfiable\n')
     except RuntimeError as e:
-        sys.stderr.write(str(e))
+        sys.stderr.write(str(e) + '\n')
 
     end = timer()
-    sys.stdout.write(f'Elapsed time: {(end - start):.6f}s')
+    sys.stdout.write(f'Elapsed time: {(end - start):.6f}s\n')
 
 
 if __name__ == '__main__':
