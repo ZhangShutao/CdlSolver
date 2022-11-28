@@ -92,6 +92,9 @@ DIR_SCHOOL_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/school.out'
 DIR_SYNERR_1_TEST = ['E:/Projects/cdlsolver/test/test_programs/naf_default.lp']
 DIR_SYNERR_1_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/naf_default.out'
 
+DIR_SHOW_TEST = ['E:/Projects/cdlsolver/test/test_programs/show.lp']
+DIR_SHOW_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/show.out'
+
 
 class ControlTest(unittest.TestCase):
 
@@ -228,3 +231,6 @@ class ControlTest(unittest.TestCase):
 
     def test_syntax_error_1(self):
         self._test_control(DIR_SYNERR_1_TEST, DIR_SYNERR_1_TEST_OUT)
+
+    def test_show(self):
+        self._test_control(DIR_SHOW_TEST, DIR_SHOW_TEST_OUT)

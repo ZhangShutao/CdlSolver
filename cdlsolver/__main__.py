@@ -8,7 +8,7 @@ import argparse
 from time import perf_counter as timer
 
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 
 def main():
@@ -45,7 +45,7 @@ def main():
         sys.stderr.write(str(e) + '\n')
 
     end = timer()
-    sys.stdout.write(f'Elapsed time: {(end - start):.6f}s\n')
+    sys.stdout.write(f'\nElapsed time: {(end - start):.6f}s\n')
 
 
 if __name__ == '__main__':

@@ -55,9 +55,9 @@ class DefaultModel:
 
     def filter_shows(self, shows):
         if len(shows) > 0:
-            show_list = [(s.name, s.arity) for s in shows]
-            new_x = set(filter(lambda x: (x.name, len(x.arguments)) in show_list, self._x))
-            new_y = set(filter(lambda y: (y.name, len(y.arguments)) in show_list, self._y))
+            show_list = [(s.positive, s.name, s.arity) for s in shows]
+            new_x = set(filter(lambda x: (x.positive, x.name, len(x.arguments)) in show_list, self._x))
+            new_y = set(filter(lambda y: (y.positive, y.name, len(y.arguments)) in show_list, self._y))
             return DefaultModel(self._symbols, new_x, new_y, self._guess)
         else:
             return DefaultModel(self._symbols, self._x, self._y, self._guess)
