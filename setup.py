@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cdlsolver',
-    version='0.1.6',
+    version='0.1.7',
     packages=['cdlsolver', 'cdlsolver.solver', 'cdlsolver.control', 'cdlsolver.preprocessor'],
     url='',
     license='MIT',

@@ -1,3 +1,3 @@
 default model: 1
-x:time(1),time(3),time(2),occur(on(2),2),time(0),occur(on(1),0); y:time(1),time(3),time(2),occur(on(2),2),time(0),occur(on(1),0);
+x:occur(on(2),3), time(2), time(1), occur(on(1),0), time(3), occur(on(2),2), time(0), occur(on(1),1); y:occur(on(2),3), time(2), time(1), occur(on(1),0), time(3), occur(on(2),2), time(0), occur(on(1),1);
 Satisfiable

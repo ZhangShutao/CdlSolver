@@ -8,7 +8,7 @@ import argparse
 from time import perf_counter as timer
 
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 
 def main():

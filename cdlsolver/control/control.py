@@ -40,7 +40,7 @@ class Control(ABC):
         :param input_path: the absolute path of the input program file
         :return: 0 if success, 1 if failed
         """
-        with open(input_path, 'r') as program_file:
+        with open(input_path, 'r', encoding='UTF-8') as program_file:
             try:
                 return self.add(program_file.read())
             except SyntaxError as e:
