@@ -36,7 +36,8 @@ class DefaultTransformer(Transformer):
 
         # if str(literal) == 'bird(X)':
         #     print(literal.atom.symbol.operator_type == clingo.ast.UnaryOperator.Minus)
-        if self._is_default_literal(literal) and (not self._is_default_of_naf(literal)):
+        # if self._is_default_literal(literal) and (not self._is_default_of_naf(literal)):
+        if self._is_default_literal(literal):
             guess_literal = self._get_guess_literal(literal)
             self._defaults.add(self._get_positive_literal(guess_literal))
 
@@ -51,12 +52,12 @@ class DefaultTransformer(Transformer):
 
             logging.debug("output literal:" + str(guess_literal))
             return guess_literal
-        elif self._is_default_of_naf(literal):
-            # elif self._is_naf_literal(literal) or self._is_default_of_naf(literal):
-            pos = "{0}:{1}-{2}".format(str(literal.location.begin.line), str(literal.location.begin.column),
-                                       str(literal.location.end.column))
-            raise SyntaxError(pos + ": error: Negation as failure in \"" +
-                              str(literal) + "\" is illegal in CDLP.")
+        # elif self._is_default_of_naf(literal):
+        #     # elif self._is_naf_literal(literal) or self._is_default_of_naf(literal):
+        #     pos = "{0}:{1}-{2}".format(str(literal.location.begin.line), str(literal.location.begin.column),
+        #                                str(literal.location.end.column))
+        #     raise SyntaxError(pos + ": error: Negation as failure in \"" +
+        #                       str(literal) + "\" is illegal in CDLP.")
         else:
 
             logging.debug("output literal:" + str(literal))
@@ -87,6 +88,19 @@ class DefaultTransformer(Transformer):
             if self._is_default_literal(literal):
                 return True
         return False
+    #
+    # @staticmethod
+    # def _reverse_rule(rule):
+    #     head = []
+    #     body = []
+    #     for h in rule.head:
+    #         if DefaultTransformer._is_naf_literal(h):
+    #
+    #
+    # @staticmethod
+    # def _encode_negation(literal):
+    #     argname = literal.
+    #     return
 
     @staticmethod
     def _is_naf_literal(literal):
@@ -104,14 +118,23 @@ class DefaultTransformer(Transformer):
             ast.atom.ast_type == clingo.ast.ASTType.TheoryAtom and \
             'c' == ast.atom.term.name
 
+    @staticmethod
+    def _is_naf_default_literal(ast):
+        return ast.ast_type == clingo.ast.ASTType.Literal and \
+            ast.sign == clingo.ast.Sign.Negation and \
+            ast.atom.ast_type == clingo.ast.ASTType.TheoryAtom and \
+            'c' == ast.atom.term.name
+
     def _get_positive_body(self, rule):
         pos_body = []
         for literal in rule.body:
-            if literal.ast_type == clingo.ast.ASTType.Literal and not self._is_default_literal(literal):
+            if literal.ast_type == clingo.ast.ASTType.Literal and \
+                    literal.atom.ast_type != clingo.ast.ASTType.Comparison and \
+                    not self._is_default_literal(literal):
                 if literal.sign != clingo.ast.Sign.Negation and literal.sign != clingo.ast.Sign.DoubleNegation:
                     # print(literal.atom.symbol.ast_type)
-                    if literal.atom.symbol.ast_type is not clingo.ast.ASTType.Function or len(
-                            literal.atom.symbol.arguments):
+                    if literal.atom.symbol.ast_type is not clingo.ast.ASTType.Function or \
+                            len(literal.atom.symbol.arguments):
                         pos_body.append(literal)
         return pos_body
 
@@ -356,6 +379,7 @@ class Preprocessor(ABC):
 
         for rule in self._additional_rules:
             self._add_to_controls(rule)
+            # print(rule)
         return 0
         # with clingo.ast.ProgramBuilder(self._candidate_ctl) as builder:
         #     clingo.ast.parse_string(program, lambda ast: builder.add(default_transformer(ast)))

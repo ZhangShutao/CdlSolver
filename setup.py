@@ -11,7 +11,8 @@ setup(
     description='A solver for cdl programs',
     python_requires='>=3.6',
     install_requires=[
-       'clingo>5.5',
+        'clingo>5.5',
+        'clingox>1.0'
     ],
     entry_points={
         'console_scripts': ['cdlsolver=cdlsolver.__main__:main']

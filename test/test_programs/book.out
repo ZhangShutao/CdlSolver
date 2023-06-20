@@ -1,3 +1,5 @@
 default model: 1
+x:book(a12); y:book(a12);
+default model: 2
 x:book(a11); y:book(a11);
 Satisfiable

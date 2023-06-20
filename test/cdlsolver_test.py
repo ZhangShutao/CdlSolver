@@ -86,14 +86,17 @@ IN_AB_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/indirect_abnormal.out
 DIR_AB_TEST = ['E:/Projects/cdlsolver/test/test_programs/direct_abnormal.lp']
 DIR_AB_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/direct_abnormal.out'
 
-DIR_SCHOOL_TEST = ['E:/Projects/cdlsolver/test/test_programs/school.lp']
-DIR_SCHOOL_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/school.out'
+SCHOOL_TEST = ['E:/Projects/cdlsolver/test/test_programs/school.lp']
+SCHOOL_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/school.out'
 
-DIR_SYNERR_1_TEST = ['E:/Projects/cdlsolver/test/test_programs/naf_default.lp']
-DIR_SYNERR_1_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/naf_default.out'
+SYNERR_1_TEST = ['E:/Projects/cdlsolver/test/test_programs/naf_default.lp']
+SYNERR_1_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/naf_default.out'
 
-DIR_SHOW_TEST = ['E:/Projects/cdlsolver/test/test_programs/show.lp']
-DIR_SHOW_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/show.out'
+SHOW_TEST = ['E:/Projects/cdlsolver/test/test_programs/show.lp']
+SHOW_TEST_OUT = 'E:/Projects/cdlsolver/test/test_programs/show.out'
+
+TLE_TEST = ['E:/Projects/cdlsolver/test/test_programs/tle.lp']
+TLE_OUT = 'E:/Projects/cdlsolver/test/test_programs/show.out'
 
 
 class ControlTest(unittest.TestCase):
@@ -113,6 +116,7 @@ class ControlTest(unittest.TestCase):
             for file_path in paths:
                 control.load(file_path)
 
+            print('programs loaded')
             models = control.solve()
             end = timer()
             print(f'Elapsed time: {(end - start):.6f}s')
@@ -227,10 +231,13 @@ class ControlTest(unittest.TestCase):
         self._test_control(DIR_AB_TEST, DIR_AB_TEST_OUT)
 
     def test_school(self):
-        self._test_control(DIR_SCHOOL_TEST, DIR_SCHOOL_TEST_OUT)
+        self._test_control(SCHOOL_TEST, SCHOOL_TEST_OUT)
 
     def test_syntax_error_1(self):
-        self._test_control(DIR_SYNERR_1_TEST, DIR_SYNERR_1_TEST_OUT)
+        self._test_control(SYNERR_1_TEST, SYNERR_1_TEST_OUT)
 
     def test_show(self):
-        self._test_control(DIR_SHOW_TEST, DIR_SHOW_TEST_OUT)
+        self._test_control(SHOW_TEST, SHOW_TEST_OUT)
+
+    #def test_tle(self):
+        #self._test_control(TLE_TEST, TLE_OUT)

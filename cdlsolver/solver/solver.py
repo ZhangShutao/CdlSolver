@@ -91,13 +91,16 @@ class Solver(ABC):
         # print('\n'.join(self._rules))
         try:
             self._candidate_ctl.ground([('base', [])])
+            logging.debug('program grounded')
         except RuntimeError as e:
             raise
         with self._candidate_ctl.solve(yield_=True) as handle:
+            logging.debug('asp program solving')
             for model in handle:
                 # print(model)
                 answer_set = model.symbols(shown=True)
                 if self._test_Y_part(answer_set):
+                    # logging.debug('y test passed')
                     self._candidates.append(DefaultModel(answer_set))
 
         self._candidates = sorted(self._candidates, key=DefaultModel.count_guess, reverse=True)
@@ -110,6 +113,7 @@ class Solver(ABC):
         return self._models
 
     def _test_Y_part(self, answer_set):
+        # logging.debug('y testing...')
         test_rules = self._rules.copy()
         assumptions = [(symbol, True) for symbol in answer_set]
         guesses = list(filter(lambda symbol: 'guess_' in symbol.name, answer_set))
@@ -125,24 +129,24 @@ class Solver(ABC):
                 test_rules.append(str(assume) + ".")
             else:
                 test_rules.append("not " + str(assume) + ".")
+        # logging.debug('\n'.join(test_rules))
 
         ctl = clingo.Control(['0'], logger=silent_logger)
         ctl.add('base', [], '\n'.join(test_rules))
 
         ctl.ground([('base', [])])
         with ctl.solve(yield_=True) as result_handle:
-            ret = False
-            for m in result_handle:
-                # print(m)
-                ret = True
+            m = result_handle.model()
+            if m is None:
+                return False
+            else:
+                return True
             # print('y test:' + str(ret))
         #
         # for symbol in guesses:
         #     objective = DefaultModel.get_symbol_from_guess(symbol)
         #     print("releasing external :" + str(objective))
         #     self._test_ctl.release_external(objective)
-
-        return ret
 
     def _candidate_covered(self, candidate_model):
         for dm in self._models:

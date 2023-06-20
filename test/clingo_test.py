@@ -1,6 +1,8 @@
 import unittest
 import clingo
 import clingo.ast
+import clingox.program
+from clingox.program import ProgramObserver
 
 
 class VisitTransformer(clingo.ast.Transformer):
@@ -25,7 +27,7 @@ class VisitTransformer(clingo.ast.Transformer):
         # print(program.keys)
 
 
-@unittest.skip('skip is upper.')
+# @unittest.skip('skip is upper.')
 class TestClingo(unittest.TestCase):
 
     def test_ground(self):
@@ -175,3 +177,16 @@ class TestClingo(unittest.TestCase):
         except RuntimeError as e:
             print(str(self._error_msg))
         print("after parsing")
+
+    def test_output_ground(self):
+        prog = clingox.program.Program()
+        program = "p :- q. r :- guess_q. :- p."
+        choice = "guess_q | not guess_q."
+        ctl = clingo.Control(['--enum-mode=cautious', '0'])
+        ctl.register_observer(ProgramObserver(prog))
+        ctl.add('base', [], program)
+        # ctl.ground(([('base', [])]))
+        ctl.add('choice', [], choice)
+        ctl.ground(([('base', []), ('choice', [])]))
+        print(prog)
+        ctl.solve(on_model=print)
