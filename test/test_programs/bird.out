@@ -1,3 +1,4 @@
-default model: 1
-x: bird(tweety), fly(tweety); y: bird(tweety), fly(tweety);
+stable model: 1
+X:bird(tweety), fly(tweety);
+A:fly(tweety);
 Satisfiable

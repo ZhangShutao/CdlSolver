@@ -8,13 +8,19 @@ class OutputModel:
         self._x = x
         self._y = y
 
-    def load(self, str):
-        parts = str.strip().replace(' ', '').split(';')
-        self._x = set(parts[0].replace('x:', '').split(','))
-        self._y = set(parts[1].replace('y:', '').split(','))
+    def load(self, strx, stry):
+        # parts = str.strip().replace(' ', '').split(';\n')
+        self._x = set(strx.replace('X:', '').split(','))
+        self._y = set(stry.replace('A:', '').split(','))
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
 
     def __key(self):
-        return ';'.join([','.join([str(x) for x in self._x]), ','.join([str(y) for y in self._y])])
+        return ';\n'.join([','.join([str(x) for x in self._x]), ','.join([str(y) for y in self._y])])
 
     def __hash__(self):
         return hash(self.__key())
@@ -29,7 +35,7 @@ class OutputModel:
         lis_y = [str(y) for y in self._y]
         lis_x.sort()
         lis_y.sort()
-        return "x:" + ','.join(lis_x) + ";y:" + ','.join(lis_y) + ";"
+        return "X:" + ','.join(lis_x) + ";\nA:" + ','.join(lis_y) + ";\n"
 
 
 class Output:
@@ -42,10 +48,11 @@ class Output:
         self._models.add(model)
 
     def load(self, str):
-        for line in str.splitlines():
-            if line.startswith('x'):
+        lines = str.splitlines()
+        for i in range(len(lines)):
+            if lines[i].startswith('X'):
                 model = OutputModel()
-                model.load(line)
+                model.load(lines[i], lines[i+1])
                 self._models.add(model)
 
     def count(self):

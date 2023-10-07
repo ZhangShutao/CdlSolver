@@ -1,5 +1,5 @@
 import unittest
-from cdlsolver.preprocessor.preprocessor import Preprocessor
+from alpsolver.preprocessor.preprocessor import Preprocessor
 import clingo.ast
 import logging
 

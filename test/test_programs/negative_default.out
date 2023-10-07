@@ -1,3 +1,4 @@
-default model: 1
-x:a,b; y:a,b;
+stable model: 1
+X:b, a;
+A:;
 Satisfiable

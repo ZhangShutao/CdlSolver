@@ -1,5 +1,7 @@
-default model: 1
-x:p; y:p,s;
-default model: 2
-x:q; y:-s,q;
+stable model: 1
+X:p;
+A:s;
+stable model: 2
+X:q;
+A:-s;
 Satisfiable

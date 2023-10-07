@@ -1,7 +1,7 @@
 import unittest
 import logging
-from cdlsolver.preprocessor.preprocessor import Preprocessor
-from cdlsolver.solver.solver import Solver
+from alpsolver.preprocessor.preprocessor import Preprocessor
+from alpsolver.solver.solver import Solver
 import clingo
 
 logger = logging.getLogger()

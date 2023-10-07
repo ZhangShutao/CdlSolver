@@ -27,7 +27,7 @@ class VisitTransformer(clingo.ast.Transformer):
         # print(program.keys)
 
 
-# @unittest.skip('skip is upper.')
+@unittest.skip('skip is upper.')
 class TestClingo(unittest.TestCase):
 
     def test_ground(self):

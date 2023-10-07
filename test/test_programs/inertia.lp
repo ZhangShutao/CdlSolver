@@ -1,4 +1,6 @@
-time(0..3).
+#const n=3.
+
+time(0..n).
 occur(on(1), 0).
 occur(on(2), 2).
 

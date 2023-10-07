@@ -42,6 +42,7 @@ class DefaultTransformer(Transformer):
             self._defaults.add(self._get_positive_literal(guess_literal))
 
             for fc in self._get_fact_constraint(literal):  # fact constraint
+                logging.debug('fact constraint: %s', fc)
                 self._additional_rules.append(fc)
 
             for wnc in self._get_weak_negation_constraint(literal):
@@ -74,6 +75,7 @@ class DefaultTransformer(Transformer):
 
                     not_guess_constraint = self._get_not_guess_constraint(rule, literal)
                     self._additional_rules.append(not_guess_constraint)
+                    logging.debug("not guess constraint: %s", not_guess_constraint)
         ret = rule.update(**self.visit_children(rule))
         logging.debug("output rule:" + str(ret))
         return ret
@@ -143,6 +145,7 @@ class DefaultTransformer(Transformer):
         guess_atom = clingo.ast.SymbolicAtom(clingo.ast.Function(literal.location, guess_name, guess_args, False))
         not_guess = clingo.ast.Literal(literal.location, clingo.ast.Sign.Negation, guess_atom)
         pos_literal = self._get_objective_literal_from_default(literal)
+        pos_literal.sign = self._is_default_of_naf(literal)
         return self._get_constraint([not_guess, pos_literal] + self._get_positive_body(rule))
 
     def _get_choice_rule(self, rule, literal):
@@ -378,6 +381,7 @@ class Preprocessor(ABC):
             raise
 
         for rule in self._additional_rules:
+            # logging.debug('additional rule: %s', rule)
             self._add_to_controls(rule)
             # print(rule)
         return 0

@@ -20,3 +20,4 @@ animal(c).
 animal(d). bird(d). penguin(d).
 
 #show fly/1.
+#show -ab/2.

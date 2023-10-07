@@ -1,9 +1,11 @@
 import logging
 from abc import ABC
 import clingo
-from cdlsolver.preprocessor.preprocessor import Preprocessor
-# from cdlsolver.postprocessor.postprocessor import Postprocessor
-from cdlsolver.solver.solver import Solver, DefaultModel
+from alpsolver.preprocessor.preprocessor import Preprocessor
+# from alpsolver.postprocessor.postprocessor import Postprocessor
+import clingox.program
+from clingox.program import ProgramObserver
+from alpsolver.solver.solver import Solver, DefaultModel
 
 
 def silent_logger(_code, _msg):
@@ -16,6 +18,8 @@ class Control(ABC):
         self._rules = []
         self._defaults = set()
         self._candidate_ctl = clingo.Control(['0'], logger=silent_logger)
+        self._prog = clingox.program.Program()
+        self._candidate_ctl.register_observer(ProgramObserver(self._prog))
         self._shows = []
 
     def add(self, program):
@@ -29,7 +33,7 @@ class Control(ABC):
         preprocessor = Preprocessor(self._defaults, self._candidate_ctl, self._rules, self._shows)
         try:
             preprocessor.preprocess(program)
-        except SyntaxError as e:
+        except RuntimeError as e:
             raise
         return 0
 
@@ -63,7 +67,10 @@ class Control(ABC):
         solver = Solver(self._candidate_ctl, self._defaults, self._rules, self._shows)
         # with  as models:
         try:
-            models = solver.solve()
+            models = []
+            for m in solver.solve():
+                models.append(m.filter_shows(self._shows))
+            # logging.debug('preprocessed program:%s', self._prog)
         except RuntimeError as e:
             raise
         finally:

@@ -5,5 +5,5 @@
 a :- apply(r1).
 b :- apply(r2).
 
-apply(r1) :- not &c{-apply(r1)}.
-apply(r2) :- not &c{-apply(r2)}, not apply(r1).
+apply(r1) :- not &c{not apply(r1)}.
+apply(r2) :- not &c{not apply(r2)}, not apply(r1).

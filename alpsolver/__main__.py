@@ -1,22 +1,22 @@
 # import clingo.ast
 import sys
 
-from cdlsolver.control.control import Control
+from alpsolver.control.control import Control
 # import heapq
 import logging
 import argparse
 from time import perf_counter as timer
 
 
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 
 def main():
 
     logging.basicConfig(encoding='utf-8', level=logging.ERROR)
     # print('CDLSolver with show statements')
-    print(f'CDLSolver version: {__version__}')
-    argparser = argparse.ArgumentParser(prog='cdlsolver')
+    print(f'alpsolver version: {__version__}')
+    argparser = argparse.ArgumentParser(prog='alpsolver')
     argparser.add_argument('input_files', nargs='+', type=str, help='path to input files')
     args = argparser.parse_args()
 
@@ -35,7 +35,7 @@ def main():
     try:
         for model in control.solve():
             model_cnt += 1
-            sys.stdout.write(f'default model: {model_cnt}\n{model}\n')
+            sys.stdout.write(f'stable model: {model_cnt}\n{model}\n')
 
         if model_cnt == 0:
             sys.stdout.write('Unsatisfiable\n')
